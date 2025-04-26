@@ -190,7 +190,12 @@ app.post("/leads/:id/comments", async (req, res) => {
     if(!lead){
       res.status(404).json({error: "Lead with ID '64c34512f7a60e36df44' not found."})
     }
-    const comment = new Comments({author, commentText, lead : req.params.id})
+
+    const authorExist = await Agent.findById(author)
+    if(!authorExist){
+      res.status(404).json({error: "Author (SalesAgent) not found"})
+    }
+    const comment = new Comments({author, commentText, lead})
     await comment.save()
 
     res

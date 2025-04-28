@@ -188,7 +188,7 @@ async function createComments(newComment) {
   }
 }
 
-app.post("/leads/:id/comment", async (req, res) => {
+app.post("/leads/:id/comments", async (req, res) => {
   const leadId = req.params
   const {author, commentText} = req.body
   try {

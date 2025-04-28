@@ -34,13 +34,19 @@ async function createLead(newLead) {
 app.post("/leads", async (req, res) => {
   console.log("Request Body: ", req.body);
   try {
-    const {name, source, status, tags, timeToClose, priority} = req.body
+    const { name, source, status, tags, timeToClose, priority } = req.body;
 
-    const lead = new Lead({name, source, status, tags, timeToClose, priority, salesAgent: req.body.salesAgent});
-    await lead.save()
-    res
-      .status(201)
-      .json({ message: "Lead Added Successfully", lead });
+    const lead = new Lead({
+      name,
+      source,
+      status,
+      tags,
+      timeToClose,
+      priority,
+      salesAgent: req.body.salesAgent,
+    });
+    await lead.save();
+    res.status(201).json({ message: "Lead Added Successfully", lead });
   } catch (error) {
     res.status(500).json({ error: "Failed to add Lead" });
   }
@@ -182,37 +188,28 @@ async function createComments(newComment) {
   }
 }
 
-app.post("/leads/:id/comments", async (req, res) => {
+app.post("/leads/:id/comment", async (req, res) => {
+  const leadId = req.params
+  const {author, commentText} = req.body
   try {
-    const {author, commentText} = req.body
-
-    const lead = await Lead.findById(req.params.id)
-    if(!lead){
-      res.status(404).json({error: "Lead with ID '64c34512f7a60e36df44' not found."})
+    const lead = await Lead.findById(leadId);
+    if (!lead) {
+      res
+        .status(404)
+        .json({ error: "Lead with ID '64c34512f7a60e36df44' not found." });
     }
-
-    const authorExist = await Agent.findById(author)
-    if(!authorExist){
-      res.status(404).json({error: "Author (SalesAgent) not found"})
-    }
-    const comment = new Comments({author, commentText, lead})
-    await comment.save()
-
-    res
-      .status(201)
-      .json({
-        message: "Reached out to lead, waiting for response.",
-        comment
-      });
+    const newComment = new Comments({commentText, author})
+    await newComment.save()
+    res.status(201).json({message: "Reached out to lead, waiting for response.", comment : newComment})
   } catch (error) {
-    res.status(400).json({ error: `Failed to fetch comment` });
+    res.status(500).json({ error: "Failed to fetch comment" });
   }
 });
 
 async function readAllComment(leadId) {
   try {
-    const lead = await Lead.findById(leadId)
-    return lead
+    const lead = await Lead.findById(leadId);
+    return lead;
   } catch (error) {
     throw error;
   }
@@ -231,41 +228,40 @@ app.get("/leads/:id/comments", async (req, res) => {
   }
 });
 
-async function fetchAllLeads(){
+async function fetchAllLeads() {
   try {
-    const lead = await Lead.find({status : "New"})
-    return lead
+    const lead = await Lead.find({ status: "New" });
+    return lead;
   } catch (error) {
-    throw error
+    throw error;
   }
 }
 
-
-app.get("/report/last-week", async(req, res) => {
+app.get("/report/last-week", async (req, res) => {
   try {
-    const closedLeads = await fetchAllLeads()
-    if(closedLeads){
-      res.json(closedLeads)
-    }else{
-      res.status(404).json({error : "Report not found"})
+    const closedLeads = await fetchAllLeads();
+    if (closedLeads) {
+      res.json(closedLeads);
+    } else {
+      res.status(404).json({ error: "Report not found" });
     }
   } catch (error) {
-    res.status(500).json({error : "Failed to fetch reports of last week."})
+    res.status(500).json({ error: "Failed to fetch reports of last week." });
   }
-})
+});
 
 app.get("/report/pipeline", async (req, res) => {
-try {
-  const notClosedLeads = await Lead.find({status : "Closed"})
-  if(notClosedLeads.length === 0){
-    res.json(notClosedLeads)
-  }else{
-    res.status(404).json({error : "Lead not found."})
+  try {
+    const notClosedLeads = await Lead.find({ status: "Closed" });
+    if (notClosedLeads.length === 0) {
+      res.json(notClosedLeads);
+    } else {
+      res.status(404).json({ error: "Lead not found." });
+    }
+  } catch (error) {
+    res.status(500).json({ error: "Failed to Fetch Lead." });
   }
-} catch (error) {
-  res.status(500).json({error : "Failed to Fetch Lead."})
-}
-})
+});
 
 const PORT = 3000;
 app.listen(PORT, () => {

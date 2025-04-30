@@ -68,8 +68,17 @@ app.get("/leads", async (req, res) => {
 
     if(Object.keys(req.query).length !== 0){
       const filteredLead = await Agent.findOne(req.query) 
-      res.json(filteredLead)
+      if(filteredLead){
+        res.json(filteredLead)
+      }
+      const filterLead = await Lead.findOne(req.query) 
+      if(filterLead){
+        res.json(filterLead)
+      }
+      res.status(404).json({error : "No matching Agent or Lead found."})
+      
     }
+
       
     const lead = await readAllLead();
     res.json(lead);

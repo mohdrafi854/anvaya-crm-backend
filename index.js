@@ -54,21 +54,25 @@ app.post("/leads", async (req, res) => {
 
 async function readAllLead() {
   try {
-    const allLead = await Lead.find();
+    const allLead = await Lead.find().populate('salesAgent')
     return allLead;
   } catch (error) {
     throw error;
   }
 }
 
+
 app.get("/leads", async (req, res) => {
   try {
-    const lead = await readAllLead();
-    if (lead.length != 0) {
-      res.json(lead);
-    } else {
-      res.status(404).json({ error: "No Lead Found." });
+    
+
+    if(Object.keys(req.query).length !== 0){
+      const filteredLead = await Agent.findOne(req.query) 
+      res.json(filteredLead)
     }
+      
+    const lead = await readAllLead();
+    res.json(lead);
   } catch (error) {
     res.status(500).json({ error: "Failed to fetch Lead." });
   }
@@ -189,8 +193,8 @@ async function createComments(newComment) {
 }
 
 app.post("/leads/:id/comments", async (req, res) => {
-  const leadId = req.params
-  const {author, commentText} = req.body
+  const leadId = req.params;
+  const { author, commentText } = req.body;
   try {
     const lead = await Lead.findById(leadId);
     if (!lead) {
@@ -198,9 +202,14 @@ app.post("/leads/:id/comments", async (req, res) => {
         .status(404)
         .json({ error: "Lead with ID '64c34512f7a60e36df44' not found." });
     }
-    const newComment = new Comments({commentText, author})
-    await newComment.save()
-    res.status(201).json({message: "Reached out to lead, waiting for response.", comment : newComment})
+    const newComment = new Comments({ commentText, author });
+    await newComment.save();
+    res
+      .status(201)
+      .json({
+        message: "Reached out to lead, waiting for response.",
+        comment: newComment,
+      });
   } catch (error) {
     res.status(500).json({ error: "Failed to fetch comment" });
   }
@@ -208,7 +217,7 @@ app.post("/leads/:id/comments", async (req, res) => {
 
 async function readAllComment(leadId) {
   try {
-    const lead = await Lead.findById(leadId);
+    const lead = await Lead.find({ lead: leadId });
     return lead;
   } catch (error) {
     throw error;

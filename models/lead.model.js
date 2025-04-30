@@ -12,7 +12,7 @@ const leadSchema = new mongoose.Schema({
   },
   salesAgent: {
     type: mongoose.Schema.Types.ObjectId,
-    ref : "SalesAgent",
+    ref : "Agent",
     required: [true, 'Sales Agent is required'],
   },
   status: {
